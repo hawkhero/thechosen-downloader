@@ -3,15 +3,16 @@
 import os
 import sys
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Callable
 import yt_dlp
 
 
 class VideoDownloader:
     """Download videos using yt-dlp"""
 
-    def __init__(self, verbose: bool = False):
+    def __init__(self, verbose: bool = False, progress_callback: Optional[Callable[[str], None]] = None):
         self.verbose = verbose
+        self.progress_callback = progress_callback
 
     def download(
         self,
@@ -127,7 +128,7 @@ class VideoDownloader:
                 }]
 
         # Progress hook
-        if not self.verbose:
+        if not self.verbose or self.progress_callback:
             opts['progress_hooks'] = [self._progress_hook]
 
         return opts
@@ -163,27 +164,41 @@ class VideoDownloader:
                 speed_mb = speed / (1024 * 1024) if speed else 0
 
                 # Format progress message
-                msg = f"\rDownloading: {percent:.1f}% "
-                msg += f"({downloaded / (1024*1024):.1f}MB / {total / (1024*1024):.1f}MB) "
+                msg = f"Downloading: {percent:.1f}%"
                 if speed:
-                    msg += f"@ {speed_mb:.2f}MB/s "
+                    msg += f" @ {speed_mb:.2f}MB/s"
                 if eta and eta > 0:
                     mins, secs = divmod(eta, 60)
-                    msg += f"ETA: {int(mins)}:{int(secs):02d}"
+                    msg += f" ETA: {int(mins)}:{int(secs):02d}"
 
-                sys.stdout.write(msg)
-                sys.stdout.flush()
+                # Call progress callback if available
+                if self.progress_callback:
+                    self.progress_callback(msg)
+
+                # Also print to stdout if not verbose (original behavior)
+                if not self.verbose:
+                    full_msg = f"\r{msg} ({downloaded / (1024*1024):.1f}MB / {total / (1024*1024):.1f}MB)"
+                    sys.stdout.write(full_msg)
+                    sys.stdout.flush()
             else:
                 # If total size unknown, just show downloaded amount
-                msg = f"\rDownloading: {downloaded / (1024*1024):.1f}MB"
+                msg = f"Downloading: {downloaded / (1024*1024):.1f}MB"
                 if speed:
                     speed_mb = speed / (1024 * 1024)
                     msg += f" @ {speed_mb:.2f}MB/s"
-                sys.stdout.write(msg)
-                sys.stdout.flush()
+
+                if self.progress_callback:
+                    self.progress_callback(msg)
+
+                if not self.verbose:
+                    sys.stdout.write(f"\r{msg}")
+                    sys.stdout.flush()
 
         elif d['status'] == 'finished':
-            print("\nDownload finished, processing...")
+            if self.progress_callback:
+                self.progress_callback("Processing...")
+            if not self.verbose:
+                print("\nDownload finished, processing...")
 
     def get_available_qualities(self, url: str) -> list:
         """

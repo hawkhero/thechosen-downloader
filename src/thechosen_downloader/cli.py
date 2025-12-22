@@ -114,8 +114,19 @@ Examples:
         action='store_true',
         help='Verbose output'
     )
+    parser.add_argument(
+        '--gui',
+        action='store_true',
+        help='Launch graphical user interface'
+    )
 
     args = parser.parse_args()
+
+    # Launch GUI if requested
+    if args.gui:
+        from .gui import main as gui_main
+        gui_main()
+        return 0
 
     # Validate arguments
     if not args.preprocess and not args.sources:

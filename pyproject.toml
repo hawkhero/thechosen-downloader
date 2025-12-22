@@ -10,6 +10,7 @@ dependencies = [
     "beautifulsoup4>=4.12.0",
     "lxml>=5.0.0",
     "playwright>=1.40.0",
+    "customtkinter>=5.2.0",
 ]
 
 [project.optional-dependencies]
@@ -20,6 +21,7 @@ dev = [
 
 [project.scripts]
 thechosen-downloader = "thechosen_downloader.cli:main"
+thechosen-gui = "thechosen_downloader.gui:main"
 
 [build-system]
 requires = ["hatchling"]
