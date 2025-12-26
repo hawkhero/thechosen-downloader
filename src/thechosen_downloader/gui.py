@@ -2,12 +2,14 @@
 
 import json
 import os
+import sys
 import threading
 from pathlib import Path
 from tkinter import filedialog
 from typing import Callable, Optional
 
 import customtkinter as ctk
+
 
 from .downloader import VideoDownloader
 
@@ -59,8 +61,8 @@ class TheChosenDownloaderGUI(ctk.CTk):
 
         # Window setup
         self.title("The Chosen Downloader")
-        self.geometry("700x580")
-        self.minsize(600, 500)
+        self.geometry("700x620")
+        self.minsize(600, 620)
 
         # Set appearance
         ctk.set_appearance_mode("system")
@@ -98,11 +100,13 @@ class TheChosenDownloaderGUI(ctk.CTk):
         self.title_label.pack(anchor="w", pady=(0, 10))
 
         # Episode list frame with scrollable area
-        # Note: CTkScrollableFrame has built-in mouse wheel support
         self.episode_frame = ctk.CTkScrollableFrame(
             self.main_frame, height=200
         )
         self.episode_frame.pack(fill="x", pady=(0, 10))
+
+        # Manually bind mouse wheel for macOS compatibility
+        self.episode_frame._parent_canvas.bind("<MouseWheel>", self._on_mouse_wheel)
 
         # Create checkboxes for each episode
         for episode in self.episodes:
@@ -213,6 +217,26 @@ class TheChosenDownloaderGUI(ctk.CTk):
             height=40,
         )
         self.download_btn.pack(side="right", pady=(10, 0))
+
+    def _on_mouse_wheel(self, event):
+        """Handle mouse wheel scrolling for episode frame"""
+        # Check if mouse is over the scrollable frame
+        if not self.episode_frame.winfo_containing(event.x_root, event.y_root) == self.episode_frame:
+            return
+
+        # Check if the scrollable frame is scrollable
+        if self.episode_frame._parent_canvas.yview() == (0.0, 1.0):
+            return
+
+        # Determine scroll direction
+        if sys.platform == "darwin":
+            # macOS uses event.delta directly
+            scroll_dir = -1 * event.delta
+        else:
+            # Windows/Linux use multiples of 120
+            scroll_dir = -1 * int(event.delta / 120)
+
+        self.episode_frame._parent_canvas.yview_scroll(scroll_dir, "units")
 
     def select_all(self):
         """Select all episodes"""
