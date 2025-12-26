@@ -34,6 +34,24 @@ class URLExtractor:
             title = None
 
             with sync_playwright() as p:
+                # Check if Playwright browsers are installed
+                try:
+                    p.chromium.executable_path()
+                    p.firefox.executable_path()
+                    p.webkit.executable_path()
+                except Exception:
+                    # Provide instructions to the user if browsers are not installed
+                    print("\n" + "=" * 80)
+                    print("Playwright browsers are not installed!")
+                    print("Please run the following command in your terminal to install them:")
+                    print("pip install playwright && playwright install")
+                    print("\nAlternatively, to install only specific browsers, use:")
+                    print("playwright install chromium")
+                    print("playwright install firefox")
+                    print("playwright install webkit")
+                    print("=" * 80 + "\n")
+                    sys.exit(1) # Exit the application if browsers are not installed
+
                 # Launch browser in headless mode
                 try:
                     browser = p.chromium.launch(headless=True)
