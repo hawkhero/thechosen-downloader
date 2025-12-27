@@ -122,6 +122,13 @@ Examples:
 
     args = parser.parse_args()
 
+    # Auto-launch GUI when running as bundled app with no arguments
+    if not args.gui and not args.preprocess and not args.sources:
+        # Check if running from a macOS .app bundle
+        if getattr(sys, 'frozen', False):
+            # Running as bundled app - default to GUI
+            args.gui = True
+
     # Launch GUI if requested
     if args.gui:
         from thechosen_downloader.gui import main as gui_main
