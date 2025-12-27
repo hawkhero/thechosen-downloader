@@ -4,10 +4,9 @@ import argparse
 import sys
 from pathlib import Path
 from typing import Optional
-from thechosen_downloader.extractor import URLExtractor
-from thechosen_downloader.downloader import VideoDownloader
-from thechosen_downloader.preprocessor import Preprocessor
-from thechosen_downloader.cache import Cache, CacheEntry
+
+# Defer heavy imports - only import when needed for CLI mode
+# This allows GUI mode to show splash window before heavy imports
 
 # Automatic cache location for single downloads
 AUTO_CACHE_PATH = ".cache/downloads.json"
@@ -131,8 +130,14 @@ Examples:
 
     # Launch GUI if requested
     if args.gui:
+        # Show splash window immediately (before heavy imports)
+        splash = _create_splash_window()
+
+        # Now import GUI module (heavy imports happen here)
         from thechosen_downloader.gui import main as gui_main
-        gui_main()
+
+        # Launch GUI with splash to destroy after initialization
+        gui_main(splash=splash)
         return 0
 
     # Validate arguments
@@ -160,8 +165,38 @@ Examples:
         return 1
 
 
+def _create_splash_window():
+    """
+    Create a minimal splash window immediately.
+    This registers with macOS and keeps the dock icon visible.
+    """
+    import tkinter as tk
+
+    splash = tk.Tk()
+    splash.title("The Chosen Downloader")
+    splash.geometry("300x100")
+    splash.resizable(False, False)
+
+    # Center on screen
+    splash.update_idletasks()
+    x = (splash.winfo_screenwidth() - 300) // 2
+    y = (splash.winfo_screenheight() - 100) // 2
+    splash.geometry(f"300x100+{x}+{y}")
+
+    # Simple loading message
+    label = tk.Label(splash, text="Loading...", font=("Helvetica", 14))
+    label.pack(expand=True)
+
+    # Force display update
+    splash.update()
+
+    return splash
+
+
 def preprocess_mode(args):
     """Preprocessing mode - extract and cache m3u8 URLs"""
+    from thechosen_downloader.preprocessor import Preprocessor
+
     if not args.output:
         print("Error: --output required for preprocessing mode", file=sys.stderr)
         return 1
@@ -182,6 +217,9 @@ def preprocess_mode(args):
 
 def multi_download_mode(args):
     """Multi-URL download mode - download multiple episodes"""
+    from thechosen_downloader.extractor import URLExtractor
+    from thechosen_downloader.downloader import VideoDownloader
+
     sources = args.sources
 
     print(f"Downloading {len(sources)} episode(s)\n")
@@ -266,6 +304,9 @@ def multi_download_mode(args):
 
 def batch_mode(args):
     """Batch download mode - download from cache"""
+    from thechosen_downloader.downloader import VideoDownloader
+    from thechosen_downloader.cache import Cache
+
     cache_file = args.sources[0]
 
     if not Path(cache_file).exists():
@@ -333,6 +374,8 @@ def _save_to_auto_cache(
     """
     Save extracted URL to automatic cache.
 
+    Imports are done inside to avoid loading heavy modules at startup.
+
     Args:
         source_url: The original URL or file path provided by user
         m3u8_url: The extracted m3u8 URL
@@ -341,6 +384,7 @@ def _save_to_auto_cache(
     """
     try:
         from .extractor import URLExtractor
+        from .cache import Cache, CacheEntry
 
         # Load existing cache
         cache = Cache(AUTO_CACHE_PATH)
@@ -381,6 +425,9 @@ def _save_to_auto_cache(
 
 def single_download_mode(args):
     """Single download mode"""
+    from thechosen_downloader.extractor import URLExtractor
+    from thechosen_downloader.downloader import VideoDownloader
+
     source = args.sources[0]
     should_cache = False  # Track if we should cache this extraction
     m3u8_url = None
@@ -454,7 +501,7 @@ def single_download_mode(args):
     return 0 if success else 1
 
 
-def parse_episode_selection(selection: str, cache: Cache) -> list:
+def parse_episode_selection(selection: str, cache: "Cache") -> list:
     """Parse episode selection string"""
     episodes = []
 

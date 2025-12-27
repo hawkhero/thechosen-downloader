@@ -4,7 +4,7 @@ from pathlib import Path
 
 datas = [('season1.json', '.')]
 binaries = []
-hiddenimports = ['playwright']
+hiddenimports = ['playwright', 'AppKit', 'Foundation', 'objc']
 tmp_ret = collect_all('customtkinter')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
@@ -48,4 +48,9 @@ app = BUNDLE(
     exe,
     name='TheChosenDownloader.app',
     bundle_identifier='com.hawk.thechosendownloader',
+    info_plist={
+        'LSBackgroundOnly': False,  # Ensure app appears in dock
+        'LSUIElement': False,       # Ensure app is not hidden
+        'NSPrincipalClass': 'NSApplication',  # Standard macOS application
+    },
 )

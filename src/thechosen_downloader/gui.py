@@ -4,13 +4,13 @@ import json
 import os
 import sys
 import threading
+import tkinter as tk
 from datetime import datetime # Added for logging
 from pathlib import Path
 from tkinter import filedialog
 from typing import Callable, Optional
 
 import customtkinter as ctk
-
 
 from .downloader import VideoDownloader
 
@@ -33,6 +33,12 @@ def _log_debug(message):
 
 def get_season1_path() -> Path:
     """Get the path to season1.json"""
+    # When running as PyInstaller bundle, check _MEIPASS first
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        bundle_path = Path(sys._MEIPASS) / "season1.json"
+        if bundle_path.exists():
+            return bundle_path
+
     # Try to find season1.json relative to this module
     module_dir = Path(__file__).parent
 
@@ -390,11 +396,22 @@ class TheChosenDownloaderGUI(ctk.CTk):
         self.set_downloading_state(False)
 
 
-def main():
-    """Main entry point for GUI"""
+def main(splash=None):
+    """Main entry point for GUI
+
+    Args:
+        splash: Optional splash window to destroy after GUI is ready
+    """
     _log_debug("GUI main() function started.")
+
     app = TheChosenDownloaderGUI()
     _log_debug("TheChosenDownloaderGUI instance created.")
+
+    # Destroy splash if provided
+    if splash:
+        splash.destroy()
+        _log_debug("Splash destroyed.")
+
     app.mainloop()
     _log_debug("GUI mainloop exited.")
 
