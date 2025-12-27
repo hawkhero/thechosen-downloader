@@ -2,3 +2,4 @@
 logs
 openspec
 dist/
+.eggs
