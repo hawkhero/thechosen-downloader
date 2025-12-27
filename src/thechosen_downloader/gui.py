@@ -27,8 +27,9 @@ SUBTITLE_LANGUAGES = [
 
 def _log_debug(message):
     log_file_path = Path.home() / "thechosen_downloader_gui_debug.log"
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S") # Explicitly format timestamp
     with open(log_file_path, "a") as f:
-        f.write(f"[DEBUG] {datetime.now()}: {message}\n")
+        f.write(f"[DEBUG] {timestamp}: {message}\n")
 
 def get_season1_path() -> Path:
     """Get the path to season1.json"""
