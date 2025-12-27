@@ -21,9 +21,8 @@ create-dmg \
   --volname "The Chosen Downloader" \
   --window-pos 200 120 \
   --window-size 800 400 \
-  "dist/The-Chosen-Downloader-Reduced.dmg" \
+  "dist/The-Chosen-Downloader.dmg" \
   "dist/TheChosenDownloader.app"
-echo ".dmg creation complete. The installer is in dist/The-Chosen-Downloader-Reduced.dmg"
+echo ".dmg creation complete. The installer is in dist/The-Chosen-Downloader.dmg"
 
 echo "Release build process finished successfully!"
-
