@@ -48,7 +48,4 @@ app = BUNDLE(
     exe,
     name='TheChosenDownloader.app',
     bundle_identifier='com.hawk.thechosendownloader',
-    info_plist={
-        'CFBundleArguments': ['--gui']
-    }
 )
