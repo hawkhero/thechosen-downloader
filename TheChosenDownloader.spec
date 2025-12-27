@@ -4,7 +4,7 @@ from pathlib import Path
 
 datas = [('season1.json', '.')]
 binaries = []
-hiddenimports = ['playwright', 'AppKit', 'Foundation', 'objc']
+hiddenimports = ['playwright']
 tmp_ret = collect_all('customtkinter')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
@@ -24,12 +24,11 @@ a = Analysis(
 )
 pyz = PYZ(a.pure)
 
+# Onedir mode: exe does NOT include binaries/datas (faster startup, no extraction)
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.datas,
-    [],
+    exclude_binaries=True,  # Binaries go in COLLECT, not in EXE
     name='TheChosenDownloader',
     debug=False,
     bootloader_ignore_signals=False,
@@ -44,8 +43,20 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
-app = BUNDLE(
+
+# Collect all files into a directory (pre-extracted, instant startup)
+coll = COLLECT(
     exe,
+    a.binaries,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name='TheChosenDownloader',
+)
+
+app = BUNDLE(
+    coll,
     name='TheChosenDownloader.app',
     bundle_identifier='com.hawk.thechosendownloader',
     info_plist={
