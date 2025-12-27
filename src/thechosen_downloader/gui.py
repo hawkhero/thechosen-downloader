@@ -4,6 +4,7 @@ import json
 import os
 import sys
 import threading
+from datetime import datetime # Added for logging
 from pathlib import Path
 from tkinter import filedialog
 from typing import Callable, Optional
@@ -24,6 +25,10 @@ SUBTITLE_LANGUAGES = [
     ("ja", "Japanese"),
 ]
 
+def _log_debug(message):
+    log_file_path = Path.home() / "thechosen_downloader_gui_debug.log"
+    with open(log_file_path, "a") as f:
+        f.write(f"[DEBUG] {datetime.now()}: {message}\n")
 
 def get_season1_path() -> Path:
     """Get the path to season1.json"""
@@ -57,23 +62,28 @@ class TheChosenDownloaderGUI(ctk.CTk):
     """Main GUI application for The Chosen Downloader"""
 
     def __init__(self):
+        _log_debug("TheChosenDownloaderGUI.__init__ started.")
         super().__init__()
+        _log_debug("super().__init__() called.")
 
         # Window setup
         self.title("The Chosen Downloader")
         self.geometry("700x620")
         self.minsize(600, 620)
+        _log_debug("Window setup complete.")
 
         # Set appearance
         ctk.set_appearance_mode("system")
         ctk.set_default_color_theme("blue")
+        _log_debug("Appearance mode and color theme set.")
 
         # Load episodes
         try:
             self.episodes = load_episodes()
+            _log_debug(f"Episodes loaded: {len(self.episodes)} episodes.")
         except FileNotFoundError as e:
             self.episodes = []
-            print(f"Warning: {e}")
+            _log_debug(f"Warning: {e} - Episodes not loaded.")
 
         # Episode checkbox variables
         self.episode_vars = []
@@ -83,7 +93,10 @@ class TheChosenDownloaderGUI(ctk.CTk):
         self.download_thread: Optional[threading.Thread] = None
 
         # Create widgets
+        _log_debug("Calling create_widgets().")
         self.create_widgets()
+        _log_debug("create_widgets() finished.")
+        _log_debug("TheChosenDownloaderGUI.__init__ finished.")
 
     def create_widgets(self):
         """Create all GUI widgets"""
@@ -378,8 +391,11 @@ class TheChosenDownloaderGUI(ctk.CTk):
 
 def main():
     """Main entry point for GUI"""
+    _log_debug("GUI main() function started.")
     app = TheChosenDownloaderGUI()
+    _log_debug("TheChosenDownloaderGUI instance created.")
     app.mainloop()
+    _log_debug("GUI mainloop exited.")
 
 
 if __name__ == "__main__":

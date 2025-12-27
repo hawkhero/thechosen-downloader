@@ -21,6 +21,10 @@ create-dmg \
   --volname "The Chosen Downloader" \
   --window-pos 200 120 \
   --window-size 800 400 \
+  --icon-size 100 \
+  --icon "TheChosenDownloader.app" 200 190 \
+  --hide-extension "TheChosenDownloader.app" \
+  --app-drop-link 600 185 \
   "dist/The-Chosen-Downloader.dmg" \
   "dist/TheChosenDownloader.app"
 echo ".dmg creation complete. The installer is in dist/The-Chosen-Downloader.dmg"

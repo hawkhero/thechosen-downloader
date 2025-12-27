@@ -4,10 +4,10 @@ import argparse
 import sys
 from pathlib import Path
 from typing import Optional
-from .extractor import URLExtractor
-from .downloader import VideoDownloader
-from .preprocessor import Preprocessor
-from .cache import Cache, CacheEntry
+from thechosen_downloader.extractor import URLExtractor
+from thechosen_downloader.downloader import VideoDownloader
+from thechosen_downloader.preprocessor import Preprocessor
+from thechosen_downloader.cache import Cache, CacheEntry
 
 # Automatic cache location for single downloads
 AUTO_CACHE_PATH = ".cache/downloads.json"
@@ -124,7 +124,7 @@ Examples:
 
     # Launch GUI if requested
     if args.gui:
-        from .gui import main as gui_main
+        from thechosen_downloader.gui import main as gui_main
         gui_main()
         return 0
 
