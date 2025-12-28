@@ -5,6 +5,7 @@ import os
 import sys
 import threading
 import tkinter as tk
+import webbrowser
 from datetime import datetime # Added for logging
 from pathlib import Path
 from tkinter import filedialog
@@ -12,6 +13,7 @@ from typing import Callable, Optional
 
 import customtkinter as ctk
 
+from . import __version__
 from .downloader import VideoDownloader
 
 # Subtitle language options
@@ -74,9 +76,9 @@ class TheChosenDownloaderGUI(ctk.CTk):
         _log_debug("super().__init__() called.")
 
         # Window setup
-        self.title("The Chosen Downloader")
-        self.geometry("700x620")
-        self.minsize(600, 620)
+        self.title(f"The Chosen Downloader v{__version__}")
+        self.geometry("700x670")
+        self.minsize(600, 670)
         _log_debug("Window setup complete.")
 
         # Set appearance
@@ -228,6 +230,27 @@ class TheChosenDownloaderGUI(ctk.CTk):
         self.progress_bar.pack(fill="x", padx=10, pady=(0, 10))
         self.progress_bar.set(0)
 
+        # Donation section (pack first to reserve bottom space)
+        self.donation_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        self.donation_frame.pack(side="bottom", fill="x", pady=(15, 0))
+
+        self.donation_text = ctk.CTkLabel(
+            self.donation_frame,
+            text="Enjoying this app? ",
+            font=ctk.CTkFont(size=12),
+        )
+        self.donation_text.pack(side="left", expand=True, anchor="e")
+
+        self.donation_link = ctk.CTkLabel(
+            self.donation_frame,
+            text="Buy me a coffee!",
+            font=ctk.CTkFont(size=12, underline=True),
+            text_color="#3B8ED0",
+            cursor="hand2",
+        )
+        self.donation_link.pack(side="left", expand=True, anchor="w")
+        self.donation_link.bind("<Button-1>", self.open_donation_link)
+
         # Download button
         self.download_btn = ctk.CTkButton(
             self.main_frame,
@@ -236,7 +259,7 @@ class TheChosenDownloaderGUI(ctk.CTk):
             font=ctk.CTkFont(size=14, weight="bold"),
             height=40,
         )
-        self.download_btn.pack(side="right", pady=(10, 0))
+        self.download_btn.pack(side="bottom", anchor="e", pady=(10, 0))
 
     def _on_mouse_wheel(self, event):
         """Handle mouse wheel scrolling for episode frame"""
@@ -277,6 +300,10 @@ class TheChosenDownloaderGUI(ctk.CTk):
         if folder:
             self.location_entry.delete(0, "end")
             self.location_entry.insert(0, folder)
+
+    def open_donation_link(self, event=None):
+        """Open donation page in browser"""
+        webbrowser.open("https://buymeacoffee.com/hawkhero")
 
     def get_selected_subtitle_code(self) -> str:
         """Get the language code for selected subtitle"""
