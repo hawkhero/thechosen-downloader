@@ -7,6 +7,18 @@ from typing import Optional, Dict, Any, Callable
 import yt_dlp
 
 
+def _get_ffmpeg_location() -> Optional[str]:
+    """Get ffmpeg location, checking bundled app path first"""
+    # When running as PyInstaller bundle
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        # In onedir mode, ffmpeg is in the same dir as the executable
+        bundle_dir = Path(sys._MEIPASS)
+        ffmpeg_path = bundle_dir / 'ffmpeg'
+        if ffmpeg_path.exists():
+            return str(bundle_dir)
+    return None  # Use system ffmpeg
+
+
 class VideoDownloader:
     """Download videos using yt-dlp"""
 
@@ -49,7 +61,6 @@ class VideoDownloader:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 if self.verbose:
                     print(f"Starting download: {url}")
-
                 ydl.download([url])
 
             if self.verbose:
@@ -78,6 +89,7 @@ class VideoDownloader:
             'quiet': not self.verbose,
             'no_warnings': not self.verbose,
             'noprogress': False,
+            'ffmpeg_location': _get_ffmpeg_location(),
             # Browser-like headers to avoid throttling
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',

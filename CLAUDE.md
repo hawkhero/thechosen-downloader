@@ -16,3 +16,60 @@ Use `@/openspec/AGENTS.md` to learn:
 Keep this managed block so 'openspec update' can refresh the instructions.
 
 <!-- OPENSPEC:END -->
+
+# TheChosenDownloader - Project Guide
+
+## Overview
+macOS app to download episodes from The Chosen streaming platform. Has both CLI and GUI modes.
+
+## Key Files
+- `src/thechosen_downloader/cli.py` - CLI entry point, also handles GUI launch
+- `src/thechosen_downloader/gui.py` - CustomTkinter GUI
+- `TheChosenDownloader.spec` - PyInstaller build configuration
+- `release.sh` - Build script (creates .app and .dmg)
+- `season1.json` - Episode metadata (bundled with app)
+
+## Build Commands
+
+```bash
+# Build .app bundle
+./release.sh
+
+# Or manually:
+source .venv/bin/activate
+pyinstaller TheChosenDownloader.spec -y
+
+# Create DMG
+create-dmg --volname "The Chosen Downloader" \
+  --app-drop-link 600 185 \
+  "dist/The-Chosen-Downloader.dmg" \
+  "dist/TheChosenDownloader.app"
+```
+
+See `docs/BUILD.md` for detailed build documentation.
+
+## PyInstaller Notes
+
+- Uses **onedir mode** for fast startup (~2s vs 10s+ with onefile)
+- Bundle size: ~177MB (uncompressed, pre-extracted)
+- Key spec settings:
+  - `exclude_binaries=True` in EXE
+  - COLLECT step gathers all files
+  - BUNDLE wraps COLLECT (not EXE directly)
+  - Info.plist: `LSBackgroundOnly: False`, `LSUIElement: False`
+
+## Bundled App Behavior
+
+When running as bundled .app (`sys.frozen` is set):
+- Defaults to GUI mode (no args needed)
+- Data files in `sys._MEIPASS` directory
+- Splash window shown before heavy imports (keeps dock icon visible)
+
+## Common Issues
+
+| Issue | Solution |
+|-------|----------|
+| Dock icon disappears | Use onedir mode, check Info.plist settings |
+| season1.json not found | Check `sys._MEIPASS` path in code |
+| Slow startup (10s+) | Switch from onefile to onedir mode |
+| Module not found | Add to `hiddenimports` in spec |

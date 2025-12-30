@@ -6,10 +6,9 @@ import sys
 import threading
 import tkinter as tk
 import webbrowser
-from datetime import datetime # Added for logging
 from pathlib import Path
 from tkinter import filedialog
-from typing import Callable, Optional
+from typing import Optional
 
 import customtkinter as ctk
 
@@ -26,12 +25,6 @@ SUBTITLE_LANGUAGES = [
     ("ko", "Korean"),
     ("ja", "Japanese"),
 ]
-
-def _log_debug(message):
-    log_file_path = Path.home() / "thechosen_downloader_gui_debug.log"
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S") # Explicitly format timestamp
-    with open(log_file_path, "a") as f:
-        f.write(f"[DEBUG] {timestamp}: {message}\n")
 
 def get_season1_path() -> Path:
     """Get the path to season1.json"""
@@ -71,28 +64,22 @@ class TheChosenDownloaderGUI(ctk.CTk):
     """Main GUI application for The Chosen Downloader"""
 
     def __init__(self):
-        _log_debug("TheChosenDownloaderGUI.__init__ started.")
         super().__init__()
-        _log_debug("super().__init__() called.")
 
         # Window setup
         self.title(f"The Chosen Downloader v{__version__}")
         self.geometry("700x670")
         self.minsize(600, 670)
-        _log_debug("Window setup complete.")
 
         # Set appearance
         ctk.set_appearance_mode("system")
         ctk.set_default_color_theme("blue")
-        _log_debug("Appearance mode and color theme set.")
 
         # Load episodes
         try:
             self.episodes = load_episodes()
-            _log_debug(f"Episodes loaded: {len(self.episodes)} episodes.")
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             self.episodes = []
-            _log_debug(f"Warning: {e} - Episodes not loaded.")
 
         # Episode checkbox variables
         self.episode_vars = []
@@ -102,10 +89,7 @@ class TheChosenDownloaderGUI(ctk.CTk):
         self.download_thread: Optional[threading.Thread] = None
 
         # Create widgets
-        _log_debug("Calling create_widgets().")
         self.create_widgets()
-        _log_debug("create_widgets() finished.")
-        _log_debug("TheChosenDownloaderGUI.__init__ finished.")
 
     def create_widgets(self):
         """Create all GUI widgets"""
@@ -351,76 +335,81 @@ class TheChosenDownloaderGUI(ctk.CTk):
             self.update_status("Please select a download location")
             return
 
+        # Get subtitle language BEFORE starting thread (tkinter vars not thread-safe)
+        subtitle_lang = self.get_selected_subtitle_code()
+
         # Create download directory if it doesn't exist
         os.makedirs(download_path, exist_ok=True)
 
         # Start download in background thread
         self.download_thread = threading.Thread(
             target=self._download_episodes,
-            args=(selected, download_path),
+            args=(selected, download_path, subtitle_lang),
             daemon=True,
         )
         self.download_thread.start()
 
-    def _download_episodes(self, episodes: list, download_path: str):
+    def _download_episodes(self, episodes: list, download_path: str, subtitle_lang: str):
         """Download episodes in background thread"""
-        self.set_downloading_state(True)
+        try:
+            self.set_downloading_state(True)
 
-        subtitle_lang = self.get_selected_subtitle_code()
+            total = len(episodes)
+            failed = []
 
-        total = len(episodes)
-        failed = []
+            for i, episode in enumerate(episodes, 1):
+                ep_num = episode["episode"]
+                title = episode["title"]
+                video_url = episode.get("video_url")
 
-        for i, episode in enumerate(episodes, 1):
-            ep_num = episode["episode"]
-            title = episode["title"]
-            video_url = episode.get("video_url")
-
-            if not video_url:
-                self.update_status(f"Episode {ep_num}: No video URL")
-                failed.append(ep_num)
-                continue
-
-            # Create downloader with progress callback for this episode
-            def progress_callback(msg):
-                self.update_status(f"[{i}/{total}] {title}: {msg}")
-
-            downloader = VideoDownloader(verbose=False, progress_callback=progress_callback)
-
-            self.update_status(f"[{i}/{total}] Starting: {title}")
-            self.update_progress((i - 1) / total)
-
-            # Generate output filename
-            output_filename = f"S01E{ep_num:02d} - {title}.mp4"
-            output_path = os.path.join(download_path, output_filename)
-
-            try:
-                success = downloader.download(
-                    url=video_url,
-                    output_path=output_path,
-                    subtitles=True,
-                    subtitle_lang=subtitle_lang,
-                )
-
-                if not success:
+                if not video_url:
+                    self.update_status(f"Episode {ep_num}: No video URL")
                     failed.append(ep_num)
-                    self.update_status(f"Failed: Episode {ep_num}")
+                    continue
 
-            except Exception as e:
-                failed.append(ep_num)
-                self.update_status(f"Error: {e}")
+                # Create downloader with progress callback for this episode
+                def progress_callback(msg):
+                    self.update_status(f"[{i}/{total}] {title}: {msg}")
 
-        # Complete
-        self.update_progress(1.0)
+                downloader = VideoDownloader(verbose=False, progress_callback=progress_callback)
 
-        if failed:
-            self.update_status(
-                f"Complete with errors. Failed episodes: {', '.join(map(str, failed))}"
-            )
-        else:
-            self.update_status(f"Successfully downloaded {total} episode(s)")
+                self.update_status(f"[{i}/{total}] Starting: {title}")
+                self.update_progress((i - 1) / total)
 
-        self.set_downloading_state(False)
+                # Generate output filename
+                output_filename = f"S01E{ep_num:02d} - {title}.mp4"
+                output_path = os.path.join(download_path, output_filename)
+
+                try:
+                    success = downloader.download(
+                        url=video_url,
+                        output_path=output_path,
+                        subtitles=True,
+                        subtitle_lang=subtitle_lang,
+                    )
+
+                    if not success:
+                        failed.append(ep_num)
+                        self.update_status(f"Failed: Episode {ep_num}")
+
+                except Exception as e:
+                    failed.append(ep_num)
+                    self.update_status(f"Error: {e}")
+
+            # Complete
+            self.update_progress(1.0)
+
+            if failed:
+                self.update_status(
+                    f"Complete with errors. Failed episodes: {', '.join(map(str, failed))}"
+                )
+            else:
+                self.update_status(f"Successfully downloaded {total} episode(s)")
+
+            self.set_downloading_state(False)
+
+        except Exception:
+            self.set_downloading_state(False)
 
 
 def main(splash=None):
@@ -429,18 +418,13 @@ def main(splash=None):
     Args:
         splash: Optional splash window to destroy after GUI is ready
     """
-    _log_debug("GUI main() function started.")
-
     app = TheChosenDownloaderGUI()
-    _log_debug("TheChosenDownloaderGUI instance created.")
 
     # Destroy splash if provided
     if splash:
         splash.destroy()
-        _log_debug("Splash destroyed.")
 
     app.mainloop()
-    _log_debug("GUI mainloop exited.")
 
 
 if __name__ == "__main__":

@@ -29,3 +29,8 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/thechosen_downloader"]
+
+[tool.pytest.ini_options]
+markers = [
+    "network: marks tests as requiring network access (may be slow)",
+]
