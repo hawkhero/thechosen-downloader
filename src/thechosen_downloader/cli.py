@@ -66,7 +66,7 @@ Examples:
     )
     parser.add_argument(
         '--quality', '-q',
-        choices=['360p', '480p', '720p', '1080p', '2160p'],
+        choices=['360p', '480p', '720p', '1080p', '1440p', '2160p'],
         default='1080p',
         help='Video quality preference (default: 1080p)'
     )

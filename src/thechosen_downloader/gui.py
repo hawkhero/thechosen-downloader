@@ -15,6 +15,19 @@ import customtkinter as ctk
 from . import __version__
 from .downloader import VideoDownloader
 
+# Quality options (value, display label)
+QUALITY_OPTIONS = [
+    (None, "Auto (Best)"),
+    ("2160p", "2160p (4K)"),
+    ("1440p", "1440p"),
+    ("1080p", "1080p"),
+    ("720p", "720p"),
+    ("480p", "480p"),
+]
+
+# Default quality selection
+DEFAULT_QUALITY = "1080p"
+
 # Subtitle language options
 SUBTITLE_LANGUAGES = [
     ("zh-TW", "Chinese (Taiwan)"),
@@ -176,14 +189,38 @@ class TheChosenDownloaderGUI(ctk.CTk):
         )
         self.browse_btn.pack(side="right")
 
-        # Options frame (Subtitle only)
+        # Options frame (Quality and Subtitle)
         self.options_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         self.options_frame.pack(fill="x", pady=(0, 15))
+
+        # Quality selection
+        self.quality_label = ctk.CTkLabel(
+            self.options_frame,
+            text="Quality:",
+            font=ctk.CTkFont(size=14),
+        )
+        self.quality_label.pack(side="left")
+
+        # Create display names for quality dropdown
+        self.quality_display_names = [label for _, label in QUALITY_OPTIONS]
+        # Find display name for default quality
+        default_quality_display = next(
+            (label for val, label in QUALITY_OPTIONS if val == DEFAULT_QUALITY),
+            "1080p"
+        )
+        self.quality_var = ctk.StringVar(value=default_quality_display)
+        self.quality_dropdown = ctk.CTkOptionMenu(
+            self.options_frame,
+            values=self.quality_display_names,
+            variable=self.quality_var,
+            width=120,
+        )
+        self.quality_dropdown.pack(side="left", padx=(10, 20))
 
         # Subtitle language selection
         self.subtitle_label = ctk.CTkLabel(
             self.options_frame,
-            text="Subtitle Language:",
+            text="Subtitle:",
             font=ctk.CTkFont(size=14),
         )
         self.subtitle_label.pack(side="left")
@@ -297,6 +334,14 @@ class TheChosenDownloaderGUI(ctk.CTk):
                 return code
         return "zh-TW"  # Default
 
+    def get_selected_quality_code(self) -> Optional[str]:
+        """Get the quality code for selected quality (None for Auto/Best)"""
+        display_name = self.quality_var.get()
+        for code, label in QUALITY_OPTIONS:
+            if label == display_name:
+                return code
+        return DEFAULT_QUALITY  # Default
+
     def get_selected_episodes(self) -> list:
         """Get list of selected episodes"""
         selected = []
@@ -335,8 +380,9 @@ class TheChosenDownloaderGUI(ctk.CTk):
             self.update_status("Please select a download location")
             return
 
-        # Get subtitle language BEFORE starting thread (tkinter vars not thread-safe)
+        # Get options BEFORE starting thread (tkinter vars not thread-safe)
         subtitle_lang = self.get_selected_subtitle_code()
+        quality = self.get_selected_quality_code()
 
         # Create download directory if it doesn't exist
         os.makedirs(download_path, exist_ok=True)
@@ -344,12 +390,12 @@ class TheChosenDownloaderGUI(ctk.CTk):
         # Start download in background thread
         self.download_thread = threading.Thread(
             target=self._download_episodes,
-            args=(selected, download_path, subtitle_lang),
+            args=(selected, download_path, subtitle_lang, quality),
             daemon=True,
         )
         self.download_thread.start()
 
-    def _download_episodes(self, episodes: list, download_path: str, subtitle_lang: str):
+    def _download_episodes(self, episodes: list, download_path: str, subtitle_lang: str, quality: Optional[str] = None):
         """Download episodes in background thread"""
         try:
             self.set_downloading_state(True)
@@ -384,6 +430,7 @@ class TheChosenDownloaderGUI(ctk.CTk):
                     success = downloader.download(
                         url=video_url,
                         output_path=output_path,
+                        quality=quality,
                         subtitles=True,
                         subtitle_lang=subtitle_lang,
                     )

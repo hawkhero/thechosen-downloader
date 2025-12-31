@@ -154,6 +154,7 @@ class VideoDownloader:
         # Map quality names to format strings
         quality_map = {
             '2160p': 'bestvideo[height<=2160]+bestaudio/best[height<=2160]',
+            '1440p': 'bestvideo[height<=1440]+bestaudio/best[height<=1440]',
             '1080p': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]',
             '720p': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
             '480p': 'bestvideo[height<=480]+bestaudio/best[height<=480]',
