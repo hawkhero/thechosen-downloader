@@ -12,7 +12,7 @@ echo "Clean up complete."
 
 # 2. Run PyInstaller to create the .app bundle
 echo "Running PyInstaller to create the .app bundle..."
-uv run pyinstaller TheChosenDownloader.spec --noconfirm
+uv run pyinstaller TheChosenDownloader-GUI.spec --noconfirm
 echo "PyInstaller build complete. .app bundle created in dist/."
 
 # 3. Create the .dmg file using create-dmg

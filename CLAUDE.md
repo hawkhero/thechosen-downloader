@@ -25,19 +25,23 @@ macOS app to download episodes from The Chosen streaming platform. Has both CLI 
 ## Key Files
 - `src/thechosen_downloader/cli.py` - CLI entry point, also handles GUI launch
 - `src/thechosen_downloader/gui.py` - CustomTkinter GUI
-- `TheChosenDownloader.spec` - PyInstaller build configuration
-- `release.sh` - Build script (creates .app and .dmg)
+- `TheChosenDownloader-GUI.spec` - Lightweight GUI-only build (~136MB)
+- `TheChosenDownloader-Full.spec` - Full build with playwright for CLI URL extraction (~267MB)
+- `release.sh` - Build script (uses GUI spec, creates .app and .dmg)
 - `season1.json` - Episode metadata (bundled with app)
 
 ## Build Commands
 
 ```bash
-# Build .app bundle
+# Build lightweight GUI-only .app bundle (recommended for distribution)
 ./release.sh
 
 # Or manually:
 source .venv/bin/activate
-pyinstaller TheChosenDownloader.spec -y
+pyinstaller TheChosenDownloader-GUI.spec -y   # 136MB, no playwright
+
+# Full build with CLI URL extraction (for developers)
+pyinstaller TheChosenDownloader-Full.spec -y  # 267MB, includes playwright
 
 # Create DMG
 create-dmg --volname "The Chosen Downloader" \
@@ -51,7 +55,8 @@ See `docs/BUILD.md` for detailed build documentation.
 ## PyInstaller Notes
 
 - Uses **onedir mode** for fast startup (~2s vs 10s+ with onefile)
-- Bundle size: ~177MB (uncompressed, pre-extracted)
+- GUI-only bundle: ~136MB (excludes playwright, lxml, bs4)
+- Full bundle: ~267MB (includes playwright for CLI URL extraction)
 - Key spec settings:
   - `exclude_binaries=True` in EXE
   - COLLECT step gathers all files
