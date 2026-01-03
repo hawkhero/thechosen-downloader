@@ -1,26 +1,28 @@
-# The Chosen Downloader
+[English Version](README.en.md)
 
-Download episodes from The Chosen streaming platform (watch.thechosen.tv) for offline viewing.
+# 神選之人(The Chosen) 下載器
 
-## Why This Project?
+從神選之人(The Chosen) 官方串流平台 (watch.thechosen.tv) 下載劇集以供離線觀看。
 
-While watching The Chosen on the official website, I experienced slow streaming speeds and constant buffering issues. The videos would frequently stutter and lag, making it difficult to enjoy the content smoothly. This frustration led me to develop a tool to download episodes for offline viewing.
+## 為何會有這個專案？
 
-I realized that others might face similar streaming problems, so I decided to open-source this project and share it with the community. Whether you have a slow internet connection, want to watch offline during travel, or simply prefer a smoother viewing experience, this tool is for you.
+在官方網站上觀看神選之人(The Chosen) 時，我遇到了串流速度緩慢和不斷緩衝的問題。影片經常卡頓和延遲，很難流暢地欣賞內容。這種挫敗感促使我開發一個工具來下載劇集以供離線觀看。
 
-## Features
-![downloader GUI](images/gui.png)
+我意識到其他人可能也面臨類似的串流問題，所以我決定將這個專案開源並與社群分享。無論您的網路連線速度慢、想在旅行時離線觀看，或者只是喜歡更流暢的觀看體驗，這個工具都適合您。
 
-- Download videos with quality selection
-- Subtitle download and embedding
-- Batch download support for multiple episodes
-- Progress tracking with ETA
-![progress tracking with ETA](images/progress.png)
-- Automatic retry on network errors
+## 功能
+![下載器 GUI](images/gui.png)
 
-## How to use
-Just go to [Releases](/releases) to download .dmg to install.
+- 可選擇影片畫質進行下載
+- 字幕下載與嵌入
+- 支援多集批次下載
+- 進度追蹤與預計完成時間
+![進度追蹤與預計完成時間](images/progress.png)
+- 網路錯誤時自動重試
 
-## License
+## 如何使用
+只需前往 [發行頁面](../../releases) 下載 .dmg 檔案進行安裝。
 
-MIT License (see LICENSE file)
+## 授權
+
+MIT 授權 (詳見 LICENSE 檔案)
