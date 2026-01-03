@@ -9,17 +9,17 @@ While watching The Chosen on the official website, I experienced slow streaming 
 I realized that others might face similar streaming problems, so I decided to open-source this project and share it with the community. Whether you have a slow internet connection, want to watch offline during travel, or simply prefer a smoother viewing experience, this tool is for you.
 
 ## Features
-![downloader GUI](gui.png)
+![downloader GUI](images/gui.png)
 
 - Download videos with quality selection
 - Subtitle download and embedding
 - Batch download support for multiple episodes
 - Progress tracking with ETA
-![progress tracking with ETA](progress.png)
+![progress tracking with ETA](images/progress.png)
 - Automatic retry on network errors
 
 ## How to use
-Just go to [Releases](releases) to download .dmg to install.
+Just go to [Releases](/releases) to download .dmg to install.
 
 ## License
 
